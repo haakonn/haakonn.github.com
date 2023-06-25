@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css"></link>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">  </head>
+  <body>
+    <!-- Cloud animation from https://codepen.io/elchiconube/pen/naxOWv -->
+    <div id="clouds">
+      <div class="cloud x1"></div>
+      <div class="cloud x2"></div>
+      <div class="cloud x3"></div>
+      <div class="cloud x4"></div>
+      <div class="cloud x5"></div>
+
+    </div>
+    <div class="content">
+      <table>
+        <thead>
+          <tr>
+            <th>
+              🕜
+            </th>
+            <th>
+              🔮
+            </th>
+          </tr>
+        </thead>
+        <tbody id="body">
+        </tbody>
+      </table>
+    </div>
+  </body>
+
+  <script>
+    const render = (data) => {
+        const fmt = (hour, pre) => hour<10? `${pre}${hour}` : `${hour}`;
+        const emoji = (name) => {
+            let symbol;
+            if (name.endsWith('_day')) symbol = name.substr(0, name.length-4);
+            else if (name.endsWith('_night')) symbol = name.substr(0, name.length-6);
+            else symbol = name;
+            
+            switch(symbol) {
+            case 'clearsky': return '☀️';
+            case 'cloudy': return '☁️';
+            case 'fair': return '⛅';
+            case 'fog': return '🌁';
+            case 'heavyrain': return '🌧️';
+            case 'heavyrainandthunder': return '⛈️';
+            case 'heavyrainshowers': return '☔';
+            case 'heavyrainshowersandthunder': return '⛈️';
+            case 'heavysleet': return '❄️🌧️';
+            case 'heavysleetandthunder': return '❄️⛈️';
+            case 'heavysleetshowers': return '❄️🌧️';
+            case 'heavysleetshowersandthunder': return '❄️⛈️';
+            case 'heavysnow': return '❄️☃️';
+            case 'heavysnowandthunder': return '❄️☃️🌩️';
+            case 'heavysnowshowers': return '🌨️❄️☃️';
+            case 'heavysnowshowersandthunder': return '❄️🌨️☃️🌩️';
+            case 'lightrain': return '🌦️';
+            case 'lightrainandthunder': return '🌦️🌩️';
+            case 'lightrainshowers': return '🌦️';
+            case 'lightrainshowersandthunder': return '🌦️🌩️';
+            case 'lightsleet': return '❄️🌦️🌩️';
+            case 'lightsleetandthunder': return '❄️🌦️🌩️';
+            case 'lightsleetshowers': return '❄️🌦️';
+            case 'lightsnow': return '❄️';
+            case 'lightsnowandthunder': return '❄️🌩️';
+            case 'lightsnowshowers': return '❄️';
+            case 'lightssleetshowersandthunder': return '❄️🌩️';
+            case 'lightssnowshowersandthunder': return '❄️🌩️';
+            case 'partlycloudy': return '⛅';
+            case 'rain': return '🌧️';
+            case 'rainandthunder': return '⛈️';
+            case 'rainshowers': return '☔';
+            case 'rainshowersandthunder': return '⛈️';
+            case 'sleet': return '❄️🌧️';
+            case 'sleetandthunder': return '❄️⛈️';
+            case 'sleetshowers': return '❄️🌧️';
+            case 'sleetshowersandthunder': return '❄️⛈️';
+            case 'snow': return '❄️☃️';
+            case 'snowandthunder': return '❄️🌩️';
+            case 'snowshowers': return '❄️☃️';
+            case 'snowshowersandthunder': return '❄️🌩️';
+            default:
+                console.log('Unknown', symbol);
+                return '☔';
+            }
+        }
+        const rain = (amount) => amount!=0? `🌧️ ${amount}` : '';
+
+        let body = document.getElementById("body");
+        data.properties.timeseries.length=24;
+        data.properties.timeseries.forEach((entry) => {
+            let row = document.createElement("tr");
+            let hour = row.appendChild(document.createElement("td"));
+            const date = new Date(entry.time);
+            hour.appendChild(
+                document.createTextNode(`${fmt(date.getHours(), '0')}-${fmt((date.getHours()+1)%24, '0')}`));
+
+            const temp = entry.data.instant.details.air_temperature;
+            const symbol = entry.data.next_1_hours.summary.symbol_code;
+            const precipitation = entry.data.next_1_hours.details.precipitation_amount;
+            let details = row.appendChild(document.createElement("td"));
+            details.appendChild(
+                document.createTextNode(`${emoji(symbol)} 🌡️${fmt(+temp.toFixed(0), ' ')} ${rain(precipitation)}`));            
+            details.classList.add('forecast', entry.data.next_12_hours.summary.symbol_confidence.replace(/\s/g, '_'))
+
+            body.appendChild(row);
+
+        });
+    };
+
+    fetch('weather.json').then(response => response.json()).then(data => render(data));
+  </script>
+</html>
